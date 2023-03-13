@@ -6,3 +6,10 @@ The project aims to answer the question :
 ## References
 [Weakly Supervised Disentangled Generative Causal Representation Learning](https://www.jmlr.org/papers/volume23/21-0080/21-0080.pdf).  
 [Overleaf View Link](https://www.overleaf.com/read/htydrnkcsqkz)
+
+## Datasets 
+* [DiveFace](https://github.com/BiDAlab/DiveFace/tree/master) - Dataset with marked different ethnicity
+* [MegaFace](http://megaface.cs.washington.edu/) - Largest Dataset of faces
+* [VggFace2](https://github.com/NNNNAI/VGGFace2-HQ) - Dataset can be downloaded from drive
+
+ 
