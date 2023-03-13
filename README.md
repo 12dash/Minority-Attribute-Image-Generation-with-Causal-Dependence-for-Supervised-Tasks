@@ -15,5 +15,5 @@ The project aims to answer the question :
 * [MegaFace](http://megaface.cs.washington.edu/) - Largest Dataset of faces
 * [VggFace2](https://github.com/NNNNAI/VGGFace2-HQ) - Dataset can be downloaded from drive
 * [American MultiRacial Face Dataset](https://osf.io/qsdrp/)
-
+* [Chicago Face](https://www.chicagofaces.org/)
  
