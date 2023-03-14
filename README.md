@@ -5,6 +5,7 @@ The project aims to answer the question :
 
 ## References
 [Weakly Supervised Disentangled Generative Causal Representation Learning](https://www.jmlr.org/papers/volume23/21-0080/21-0080.pdf).  
+[Github Link for DEAR](https://github.com/xwshen51/DEAR/tree/main).  
 [Overleaf View Link](https://www.overleaf.com/read/htydrnkcsqkz)
 
 ## Datasets 
