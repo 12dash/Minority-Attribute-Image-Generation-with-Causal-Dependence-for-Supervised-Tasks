@@ -47,7 +47,7 @@ if __name__ == "__main__":
     g_optimizer = optim.Adam(g.parameters(), lr=5e-5, betas=(0, 0.999))
     D_optimizer = optim.Adam(disc.parameters(), lr=1e-4, betas=(0, 0.999))
     
-    epochs = 1
+    epochs = 200
 
     num = len(train_dataloader.dataset)//batch_size
     print('Begining to train')
