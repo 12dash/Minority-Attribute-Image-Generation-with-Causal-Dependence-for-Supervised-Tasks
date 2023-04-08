@@ -100,7 +100,6 @@ if __name__ == "__main__":
             g_loss.append(loss_decoder.item())
             loss_decoder.backward()
             g_optimizer.step()
-            break
             
         print(f"[{epoch+1}/{epochs}] Encoder Loss : {sum(e_loss)/num:>.5f} Gen Loss : {sum(g_loss)/num:>.5f} Disc Loss : {sum(disc_loss)/num:>.5f}")
         if (epoch+1) % 5 == 0 or epoch == 0:
