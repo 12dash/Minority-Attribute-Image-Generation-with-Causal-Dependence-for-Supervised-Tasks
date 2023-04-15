@@ -61,25 +61,13 @@ def get_train_dataloader(root_folder, img_dim=64, batch_size=32, cols = None):
                                   shuffle = True, prefetch_factor = 4)
     return train_dataloader
 
-def plot(model, train_dataloader, path, epoch):
-    p = f"{path}{epochs}.jpg"
-    def plot_image(fake):
-        with torch.no_grad():
-            fake = np.transpose(fake.cpu().numpy(), (0, 2, 3, 1))
+def plot_image(fake, p):
+    with torch.no_grad():
+        fake = np.transpose(fake.cpu().numpy(), (0, 2, 3, 1))
         _,ax = plt.subplots(1, 10, figsize=(24,4))
         for i in range(10):
             ax[i].imshow(fake[i])
         plt.savefig(p)
-
-    for batch_idx, (x, label) in enumerate(train_dataloader):
-        model.eval()
-        with torch.no_grad():
-            x = x.to(device)
-            x_recon = model(x, recon=True)[:10]
-            x_recon = (x_recon * 0.5) + 0.5
-            plot_image((x[:10] * 0.5) + 0.5)
-            plot_image(x_recon)
-        break
 
 global device
 global celoss
@@ -146,7 +134,6 @@ if __name__=="__main__":
     g_steps_per_iter = 1
 
     number_batches = (len(train_dataloader.dataset)//batch_size)+1
-    number_batches
 
     for epoch in (range(epochs)):
         model.train()
@@ -205,15 +192,28 @@ if __name__=="__main__":
                     A_optimizer.step()
                     prior_optimizer.step()
                     g_loss.append(loss_decoder.item())
-            break
+                break
         except Exception as e:
-            pass
+            if batch_idx < 5:
+                print(e)
+            else:
+                pass
 
         print(f"[{epoch+1}/{epochs}] Encoder Loss : {sum(e_loss)/number_batches:>.5f} Gen Loss : {sum(g_loss)/number_batches:>.5f} Disc Loss : {sum(disc_loss)/number_batches:>.5f}")
-        if epoch % 1 == 0:
-            plot(model, train_dataloader, 'plot/', str(epoch))
+        if epoch % 5 == 0:
             model.eval()
-            x_ = x[:10]
-            z = torch.randn(x_.size(0), latent_dim, device=x.device)
-            z_fake, x_fake, z, z_fake_mean = model(x_, z)
-            print(z_fake_mean[:num_label])
+            t = 10
+            for batch_idx, (x, label) in enumerate(train_dataloader):
+                with torch.no_grad():
+                    x = x.to(device)
+                    x_ = x[:t]
+                    x_recon = model(x, recon=True)[:10]
+                    x_recon = (x_recon * 0.5) + 0.5
+                    p = f"plot/{epochs}.jpg"
+                
+                    plot_image(x_recon, p)
+        
+                    z = torch.randn(x_.size(0), latent_dim, device=x.device)
+                    z_fake, x_fake, z, z_fake_mean = model(x_, z)
+                    print(z_fake_mean[:, :num_label], label[:t])
+                break
