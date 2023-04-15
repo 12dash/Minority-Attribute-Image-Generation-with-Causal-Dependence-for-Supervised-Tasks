@@ -129,7 +129,7 @@ if __name__=="__main__":
     model = nn.DataParallel(model.to(device))
     discriminator = nn.DataParallel(discriminator.to(device))
 
-    epochs = 1
+    epochs = 50
     d_steps_per_iter = 1
     g_steps_per_iter = 1
 
@@ -192,7 +192,6 @@ if __name__=="__main__":
                     A_optimizer.step()
                     prior_optimizer.step()
                     g_loss.append(loss_decoder.item())
-                break
         except Exception as e:
             if batch_idx < 5:
                 print(e)
