@@ -213,7 +213,7 @@ class ResNet(nn.Module):
 
 def _resnet(arch, block, layers, progress, **kwargs):
     return ResNet(block, layers, **kwargs)
-    
+
 def resnet18(progress=True, **kwargs):
     return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], progress, **kwargs)
 
@@ -233,4 +233,4 @@ class Encoder(nn.Module):
     def forward(self, x):
         z, ap = self.encoder(x)
         return z.chunk(2, dim=1)
-    
+
