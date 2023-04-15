@@ -149,6 +149,7 @@ if __name__=="__main__":
     number_batches
 
     for epoch in (range(epochs)):
+        model.train()
         disc_loss, e_loss, g_loss = [], [], []
         try:
             for batch_idx, (x, label) in (enumerate(train_dataloader)):
@@ -211,3 +212,8 @@ if __name__=="__main__":
         print(f"[{epoch+1}/{epochs}] Encoder Loss : {sum(e_loss)/number_batches:>.5f} Gen Loss : {sum(g_loss)/number_batches:>.5f} Disc Loss : {sum(disc_loss)/number_batches:>.5f}")
         if epoch % 1 == 0:
             plot(model, train_dataloader, 'plot/', str(epoch))
+            model.eval()
+            x_ = x[:10]
+            z = torch.randn(x_.size(0), latent_dim, device=x.device)
+            z_fake, x_fake, z, z_fake_mean = model(x_, z)
+            print(z_fake_mean[:num_label])
