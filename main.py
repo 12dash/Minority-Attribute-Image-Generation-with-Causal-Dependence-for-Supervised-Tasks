@@ -1,32 +1,96 @@
-import os
+import sys
 import torch
+import torch.utils.data
+from torch import nn, optim
+from torch.nn import functional as F
+from torchvision.utils import save_image
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-import torch.optim as optim
-from torch.autograd import Variable
-import torch.nn.functional as F
+from bgm import *
+from sagan import *
+from causal_model import *
+import os
+import random
+import utils
 
-from Encoder import Encoder, reparameterize
-from Generator import Generator
-from Discriminator import BigJointDiscriminator
+import pandas as pd
+from PIL import Image
+import matplotlib.pyplot as plt
+from torch.utils.data import DataLoader, Dataset
+from torchvision.transforms import ToTensor, Compose, Resize, Normalize
 
-from utils import get_train_dataloader
+from tqdm.notebook import tqdm
+import seaborn as sns
 
-def save_image(fake, epoch = None):
-    with torch.no_grad():
-        fake = np.transpose(fake.cpu().numpy(), (0, 2, 3, 1))
-    _,ax = plt.subplots(1, 10, figsize=(24,4))
-    for i in range(10):
-        ax[i].imshow(fake[i])
-    name = "final"
-    if epoch is not None:
-        name = str(epoch)
-    plt.savefig(f'plots/{name}.png')
 
-if __name__ == "__main__":
+class ImageDataset(Dataset):
+    def __init__(self,root_folder,transform, cols = None):
+        self.transform=transform
+        self.img_folder=root_folder+'img/img_align_celeba/'
+
+        self.image_names=[i for i in os.listdir(self.img_folder) if '.jpg' in i]
+        self.attr = pd.read_csv(root_folder+'attr.csv').replace(-1,0)
+        _ = self.attr.pop('image_id')
+        if cols is not None:
+            self.attr = self.attr[cols]    
+        self.num_feat = len(self.attr.columns)
+        self.order = list(self.attr.columns)
+        
+        self.attr = self.attr.values
+   
+    def __len__(self):
+        return len(self.image_names)
+ 
+    def __getitem__(self, index):
+        image_path = self.img_folder + self.image_names[index]
+        image=Image.open(image_path)
+        image=self.transform(image)
+        label = torch.tensor(self.attr[index], dtype = torch.float)
+
+        return image, label
+
+def get_train_dataloader(root_folder, img_dim=64, batch_size=32, cols = None):
+
+    transform = Compose([Resize((img_dim, img_dim)),
+                        ToTensor(),
+                        Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    training_data = ImageDataset(root_folder='dataset/celebA/',transform=transform, cols = cols)
+    train_dataloader = DataLoader(training_data, batch_size = batch_size, num_workers = 2, 
+                                  shuffle = True, prefetch_factor = 4)
+    return train_dataloader
+
+def plot(model, train_dataloader, path, epoch):
+    p = f"{path}{epochs}.jpg"
+    def plot_image(fake):
+        with torch.no_grad():
+            fake = np.transpose(fake.cpu().numpy(), (0, 2, 3, 1))
+        _,ax = plt.subplots(1, 10, figsize=(24,4))
+        for i in range(10):
+            ax[i].imshow(fake[i])
+        plt.savefig(p)
+
+    for batch_idx, (x, label) in enumerate(train_dataloader):
+        model.eval()
+        with torch.no_grad():
+            x = x.to(device)
+            x_recon = model(x, recon=True)[:10]
+            x_recon = (x_recon * 0.5) + 0.5
+            plot_image((x[:10] * 0.5) + 0.5)
+            plot_image(x_recon)
+        break
+
+global device
+global celoss
+
+if __name__=="__main__":
+    global device
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     print(f"Using {device} device")
+
+    celoss = torch.nn.BCEWithLogitsLoss()
+    cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
 
     root_folder = 'sample_data/'
 
@@ -35,80 +99,115 @@ if __name__ == "__main__":
     latent_dim = 100
 
     img_dim = 64
-    batch_size = 32
+    batch_size = 128
 
-    train_dataloader = get_train_dataloader(root_folder, img_dim=img_dim, batch_size=batch_size)
+    g_conv_dim = 32
+    enc_dist='gaussian'
+    enc_arch='resnet'
+    enc_fc_size=2048
+    enc_noise_dim=128
+    dec_dist = 'implicit'
+    prior = 'linscm'
 
-    e = Encoder(latent_dim = latent_dim, fc_size = fc_size).to(device)
-    g = Generator(latent_dim = latent_dim, image_size = img_dim).to(device)
-    disc = BigJointDiscriminator(latent_dim = latent_dim, image_size = img_dim).to(device)
- 
-    e_optimizer = optim.Adam(e.parameters(), lr=5e-5, betas=(0, 0.999))
-    g_optimizer = optim.Adam(g.parameters(), lr=5e-5, betas=(0, 0.999))
-    D_optimizer = optim.Adam(disc.parameters(), lr=1e-4, betas=(0, 0.999))
-    
-    epochs = 200
+    d_conv_dim = 32
+    dis_fc_size = 1024
 
-    num = len(train_dataloader.dataset)//batch_size
-    print('Begining to train')
+    num_label = len(cols)
 
-    for epoch in range(epochs):
-        disc_loss = []
-        e_loss = []
-        g_loss = []
-        
-        e.train()
-        g.train()
-        disc.train()
+    train_dataloader = get_train_dataloader(root_folder, img_dim=img_dim, 
+                                        batch_size=batch_size, cols = cols, 
+                                       )
+    A = torch.zeros((num_label, num_label), device = device)
+    A[0, 2:6] = 1
+    A[1, 4] = 1
+    model = BGM(latent_dim, g_conv_dim, img_dim,
+                enc_dist, enc_arch, enc_fc_size, enc_noise_dim, dec_dist,
+                prior, num_label, A)
+    discriminator = BigJointDiscriminator(latent_dim, d_conv_dim, img_dim, dis_fc_size)
 
-        for (X, y) in train_dataloader:
-            disc.zero_grad()
-            
-            X = X.to(device)
-            z = torch.randn(X.shape[0], latent_dim, device=device)
-            mu, sigma = e(X)
-            z_fake = reparameterize(mu, sigma )
-            X_fake = g(z)
-            
-            e_score = disc(X, z_fake.detach())
-            g_score = disc(X_fake.detach(), z.detach())
-            
-            del z_fake
-            del X_fake
-            
-            loss_d = F.softplus(g_score).mean() + F.softplus(-e_score).mean()
-            loss_d.backward()
-            D_optimizer.step()
-            disc_loss.append(loss_d.item())
-            #___________________________________
-            e.zero_grad()
-            g.zero_grad()
-            
-            mu, sigma = e(X)
-            z_fake = reparameterize(mu, sigma )
-            X_fake = g(z)
-            
-            e_score = disc(X, z_fake)
-            l_encoder = e_score.mean()
-            l_encoder.backward()
-            e_loss.append(l_encoder.item())
-            e_optimizer.step()
-            
-            g_score = disc(X_fake, z)
-            s_decoder = torch.exp(g_score.detach()).clamp(0.5, 2)
-            loss_decoder = -(s_decoder * g_score).mean()
-            g_loss.append(loss_decoder.item())
-            loss_decoder.backward()
-            g_optimizer.step()
-            
-        print(f"[{epoch+1}/{epochs}] Encoder Loss : {sum(e_loss)/num:>.5f} Gen Loss : {sum(g_loss)/num:>.5f} Disc Loss : {sum(disc_loss)/num:>.5f}")
-        if (epoch+1) % 5 == 0 or epoch == 0:
-            e.eval()
-            g.eval()
-            for X, y in train_dataloader:
-                mu, sigma = e(X.to(device))
-                z = reparameterize(mu, sigma)
-                x_fake = g(z)
-                x_fake = (x_fake * 0.5) + 0.5
-                save_image(x_fake, epoch+1)
-                break
+    A_optimizer = None
+    prior_optimizer = None
+
+    enc_param = model.encoder.parameters()
+    dec_param = list(model.decoder.parameters())
+    prior_param = list(model.prior.parameters())
+
+    A_optimizer = optim.Adam(prior_param[0:1], lr=5e-4)
+    prior_optimizer = optim.Adam(prior_param[1:], lr=5e-4, betas=(0, 0.999))
+
+    encoder_optimizer = optim.Adam(enc_param, lr=5e-5, betas=(0, 0.999))
+    decoder_optimizer = optim.Adam(dec_param, lr=5e-5, betas=(0, 0.999))
+    D_optimizer = optim.Adam(discriminator.parameters(), lr=1e-4, betas=(0, 0.999))
+    model = nn.DataParallel(model.to(device))
+    discriminator = nn.DataParallel(discriminator.to(device))
+
+    epochs = 1
+    d_steps_per_iter = 1
+    g_steps_per_iter = 1
+
+    number_batches = (len(train_dataloader.dataset)//batch_size)+1
+    number_batches
+
+    for epoch in (range(epochs)):
+        disc_loss, e_loss, g_loss = [], [], []
+        try:
+            for batch_idx, (x, label) in (enumerate(train_dataloader)):
+                x = x.to(device)
+                sup_flag = label[:, 0] != -1
+                if sup_flag.sum() > 0:
+                    label = label[sup_flag, :].float()
+                
+                label = label.to(device)
+                
+                for _ in range(d_steps_per_iter):
+                    discriminator.zero_grad()
+                    z = torch.randn(x.size(0), latent_dim, device=x.device)
+                    z_fake, x_fake, z, _ = model(x, z)
+                    encoder_score = discriminator(x, z_fake.detach())
+                    decoder_score = discriminator(x_fake.detach(), z.detach())
+                    del z_fake
+                    del x_fake
+                    
+                    loss_d = F.softplus(decoder_score).mean() + F.softplus(-encoder_score).mean()
+                    loss_d.backward()
+                    D_optimizer.step()
+                    disc_loss.append(loss_d.item())
+                
+                for _ in range(g_steps_per_iter):
+                    z = torch.randn(x.size(0), latent_dim, device=x.device)
+                    z_fake, x_fake, z, z_fake_mean = model(x, z)
+                    model.zero_grad()
+                    encoder_score = discriminator(x, z_fake)
+                    loss_encoder = encoder_score.mean()
+                    if sup_flag.sum() > 0:
+                        label_z = z_fake_mean[sup_flag, :num_label]
+                        sup_loss = celoss(label_z, label)
+                    else:
+                        sup_loss = torch.zeros([1], device=device)
+                    loss_encoder = loss_encoder + sup_loss * 5
+                    loss_encoder.backward()
+                    encoder_optimizer.step()
+                    prior_optimizer.step()
+                    e_loss.append(loss_encoder.item())
+                    
+                    model.zero_grad()
+                    z = torch.randn(x.size(0), latent_dim, device=x.device)
+                    z_fake, x_fake, z, z_fake_mean = model(x, z)
+                    decoder_score = discriminator(x_fake, z)
+                    r_decoder = torch.exp(decoder_score.detach())
+                    s_decoder = r_decoder.clamp(0.5, 2)
+                    loss_decoder = -(s_decoder * decoder_score).mean()
+                    
+                    loss_decoder.backward()
+                    decoder_optimizer.step()
+                    model.module.prior.set_zero_grad()
+                    A_optimizer.step()
+                    prior_optimizer.step()
+                    g_loss.append(loss_decoder.item())
+            break
+        except Exception as e:
+            pass
+
+        print(f"[{epoch+1}/{epochs}] Encoder Loss : {sum(e_loss)/number_batches:>.5f} Gen Loss : {sum(g_loss)/number_batches:>.5f} Disc Loss : {sum(disc_loss)/number_batches:>.5f}")
+        if epoch % 1 == 0:
+            plot(model, train_dataloader, 'plot/', str(epoch))
