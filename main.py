@@ -208,7 +208,7 @@ if __name__=="__main__":
                     x_ = x[:t]
                     x_recon = model(x, recon=True)[:10]
                     x_recon = (x_recon * 0.5) + 0.5
-                    p = f"plot/{epochs}.jpg"
+                    p = f"plot/{epoch}.jpg"
                 
                     plot_image(x_recon, p)
         
