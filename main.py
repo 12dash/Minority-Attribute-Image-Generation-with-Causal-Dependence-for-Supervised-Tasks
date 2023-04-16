@@ -68,6 +68,10 @@ def plot_image(fake, p):
         for i in range(10):
             ax[i].imshow(fake[i])
         plt.savefig(p)
+def save_model_state(model_name, model, epoch):
+    path = f'model/{model_name}'
+    torch.save({'epoch': epoch, 'model_state_dict': model.state_dict()}, path)
+
 
 global device
 global celoss
@@ -126,6 +130,7 @@ if __name__=="__main__":
     encoder_optimizer = optim.Adam(enc_param, lr=5e-5, betas=(0, 0.999))
     decoder_optimizer = optim.Adam(dec_param, lr=5e-5, betas=(0, 0.999))
     D_optimizer = optim.Adam(discriminator.parameters(), lr=1e-4, betas=(0, 0.999))
+
     model = nn.DataParallel(model.to(device))
     discriminator = nn.DataParallel(discriminator.to(device))
 
@@ -213,10 +218,8 @@ if __name__=="__main__":
                     x_recon = model(x, recon=True)[:10]
                     x_recon = (x_recon * 0.5) + 0.5
                     p = f"plot/{epoch}.jpg"
-                
                     plot_image(x_recon, p)
-        
-                    #z = torch.randn(x_.size(0), latent_dim, device=x.device)
-                    #z_fake, x_fake, z, z_fake_mean = model(x_, z)
-                    #print(z_fake_mean[:, :num_label], label[:t])
+                    save_model_state('bgm', model, epoch)
+                    save_model_state('disc', discriminator, epoch)
+
                 break
