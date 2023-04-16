@@ -29,8 +29,7 @@ class ImageDataset(Dataset):
     def __init__(self,root_folder,transform, cols = None):
         self.transform=transform
         self.img_folder=root_folder+'img/img_align_celeba/'
-
-        # self.image_names=[i for i in os.listdir(self.img_folder) if '.jpg' in i]
+        
         self.attr = pd.read_csv(root_folder+'attr.csv').replace(-1,0)
         self.image_names = self.attr.pop('image_id')
         if cols is not None:
@@ -61,6 +60,7 @@ def get_train_dataloader(root_folder, img_dim=64, batch_size=32, cols = None):
                                   shuffle = True, prefetch_factor = 4)
     return train_dataloader
 
+# +
 def plot_image(fake, p):
     with torch.no_grad():
         fake = np.transpose(fake.cpu().numpy(), (0, 2, 3, 1))
@@ -68,10 +68,13 @@ def plot_image(fake, p):
         for i in range(10):
             ax[i].imshow(fake[i])
         plt.savefig(p)
+        
 def save_model_state(model_name, model, epoch):
     path = f'model/{model_name}'
     torch.save({'epoch': epoch, 'model_state_dict': model.state_dict()}, path)
 
+
+# -
 
 global device
 global celoss
@@ -143,8 +146,10 @@ if __name__=="__main__":
     for epoch in (range(epochs)):
         model.train()
         disc_loss, e_loss, g_loss, label_loss = [], [], [], []
+        batch_num = 0
         try:
             for batch_idx, (x, label) in (enumerate(train_dataloader)):
+                batch_num = batch_idx
                 x = x.to(device)
                 sup_flag = label[:, 0] != -1
                 if sup_flag.sum() > 0:
@@ -199,7 +204,7 @@ if __name__=="__main__":
                     prior_optimizer.step()
                     g_loss.append(loss_decoder.item())
         except Exception as e:
-            if batch_idx < 5:
+            if batch_num < 5:
                 print(e)
             else:
                 pass
