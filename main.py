@@ -30,9 +30,9 @@ class ImageDataset(Dataset):
         self.transform=transform
         self.img_folder=root_folder+'img/img_align_celeba/'
 
-        self.image_names=[i for i in os.listdir(self.img_folder) if '.jpg' in i]
+        # self.image_names=[i for i in os.listdir(self.img_folder) if '.jpg' in i]
         self.attr = pd.read_csv(root_folder+'attr.csv').replace(-1,0)
-        _ = self.attr.pop('image_id')
+        self.image_names = self.attr.pop('image_id')
         if cols is not None:
             self.attr = self.attr[cols]    
         self.num_feat = len(self.attr.columns)
@@ -137,7 +137,7 @@ if __name__=="__main__":
 
     for epoch in (range(epochs)):
         model.train()
-        disc_loss, e_loss, g_loss = [], [], []
+        disc_loss, e_loss, g_loss, label_loss = [], [], [], []
         try:
             for batch_idx, (x, label) in (enumerate(train_dataloader)):
                 x = x.to(device)
@@ -170,6 +170,7 @@ if __name__=="__main__":
                     if sup_flag.sum() > 0:
                         label_z = z_fake_mean[sup_flag, :num_label]
                         sup_loss = celoss(label_z, label)
+                        label_loss.append(sup_loss.item())
                     else:
                         sup_loss = torch.zeros([1], device=device)
                     loss_encoder = loss_encoder + sup_loss * 5
@@ -198,7 +199,10 @@ if __name__=="__main__":
             else:
                 pass
 
-        print(f"[{epoch+1}/{epochs}] Encoder Loss : {sum(e_loss)/number_batches:>.5f} Gen Loss : {sum(g_loss)/number_batches:>.5f} Disc Loss : {sum(disc_loss)/number_batches:>.5f}")
+        print(f"[{epoch+1}/{epochs}] Encoder Loss : {sum(e_loss)/number_batches:>.5f}\
+        Gen Loss : {sum(g_loss)/number_batches:>.5f} Disc Loss : {sum(disc_loss)/number_batches:>.5f} \
+        Label Loss : {sum(label_loss)/len(label_loss):>.5f}")
+        
         if epoch % 5 == 0:
             model.eval()
             t = 10
@@ -212,7 +216,7 @@ if __name__=="__main__":
                 
                     plot_image(x_recon, p)
         
-                    z = torch.randn(x_.size(0), latent_dim, device=x.device)
-                    z_fake, x_fake, z, z_fake_mean = model(x_, z)
-                    print(z_fake_mean[:, :num_label], label[:t])
+                    #z = torch.randn(x_.size(0), latent_dim, device=x.device)
+                    #z_fake, x_fake, z, z_fake_mean = model(x_, z)
+                    #print(z_fake_mean[:, :num_label], label[:t])
                 break
