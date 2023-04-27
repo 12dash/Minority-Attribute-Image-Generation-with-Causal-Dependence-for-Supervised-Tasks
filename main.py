@@ -1,6 +1,7 @@
 from bgm import *
 from sagan import *
 from causal_model import *
+from util import plot_image, save_model
 
 import os
 import sys
@@ -52,14 +53,6 @@ def get_train_dataloader(root_folder, img_dim=64, batch_size=32, cols = None):
     train_dataloader = DataLoader(training_data, batch_size = batch_size, num_workers = 2, 
                                   shuffle = True, prefetch_factor = 4)
     return train_dataloader
-
-def plot_image(fake, p):
-    with torch.no_grad():
-        fake = np.transpose(fake.cpu().numpy(), (0, 2, 3, 1))
-        _,ax = plt.subplots(1, 10, figsize=(24,4))
-        for i in range(10):
-            ax[i].imshow(fake[i])
-        plt.savefig(p)
         
 def save_model_state(model_name, model, epoch):
     path = f'saved_model/{model_name}'
@@ -84,7 +77,6 @@ if __name__=="__main__":
 
     img_dim = 64
     batch_size = 128
-
 
     ### BGM PARAMETERS ###
     g_conv_dim = 32
@@ -208,13 +200,10 @@ if __name__=="__main__":
             t = 10
             for batch_idx, (x, label) in enumerate(train_dataloader):
                 with torch.no_grad():
-                    x = x.to(device)
-                    x_ = x[:t]
-                    x_recon = model(x, recon=True)[:10]
+                    x = x.to(device)[:t]
+                    x_recon = model(x, recon=True)
                     x_recon = (x_recon * 0.5) + 0.5
-                    p = f"plot/{epoch}.jpg"
-                    plot_image(x_recon, p)
-                    save_model_state('bgm', model, epoch)
-                    save_model_state('disc', discriminator, epoch)
-
+                    plot_image(x_recon, epoch)
+                    save_model('bgm', model, epoch)
+                    save_model('disc', discriminator, epoch)
                 break
