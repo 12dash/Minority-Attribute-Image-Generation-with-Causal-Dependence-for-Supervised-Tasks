@@ -204,8 +204,8 @@ if __name__=="__main__":
         enc_loss, gen_loss, disc_loss, label_loss = train_step(train_dataloader, model, discriminator, A_optimizer, 
                 prior_optimizer, encoder_optimizer, decoder_optimizer, disc_optimizer, 
                 d_steps_per_iter = 1, g_steps_per_iter = 1, alpha = 5)
-        train_time = (time.time() - t1) /3600
-        print(f"[{epoch+1}/{epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} Time : {train_time:>.2f} min")
+        train_time = (time.time() - t1) / 3600
+        print(f"[{epoch+1}/{epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} Time : {train_time:>.3f} min")
         
         # Val Step
         if (epoch+1) % 5 == 0:
