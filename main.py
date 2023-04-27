@@ -80,7 +80,7 @@ def train_step(train_dataloader, model, discriminator, A_optimizer,
     
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
 
-def eval_step(dataloader, model, discriminator, epoch, num_imgs=10):
+def eval_step(dataloader, model, discriminator, epoch, num_imgs=10, alpha = 5):
     model.eval()
     discriminator.eval()
     disc_loss, enc_loss, label_loss, gen_loss = [], [], [], []
@@ -126,7 +126,7 @@ def eval_step(dataloader, model, discriminator, epoch, num_imgs=10):
             loss_decoder = -(s_decoder * decoder_score).mean()
             gen_loss.append(loss_decoder.item())
 
-        for batch_idx, (x, label) in enumerate(val_dataloader):
+        for batch_idx, (x, label) in enumerate(dataloader):
             x = x.to(device)[:num_imgs]
             x_recon = model(x, recon=True)
             x_recon = (x_recon * 0.5) + 0.5
