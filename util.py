@@ -9,14 +9,14 @@ def plot_image(orig, fake_img, epoch, num_imgs = 10, plot_dir = 'plot/'):
         orig = np.transpose(orig.cpu().numpy(), (0, 2, 3, 1))
         for i in range(num_imgs):
             ax[0][i].imshow(orig[i])
-            ax[0][i].xticks([])
-            ax[0][i].yticks([])
+            ax[0][i].set_xticks([])
+            ax[0][i].set_yticks([])
 
         fake_img = np.transpose(fake_img.cpu().numpy(), (0, 2, 3, 1))
         for i in range(num_imgs):
             ax[1][i].imshow(fake_img[i])
-            ax[1][i].xticks([])
-            ax[1][i].yticks([])
+            ax[1][i].set_xticks([])
+            ax[1][i].set_yticks([])
     plt.savefig(f"{plot_dir}{epoch}.jpg")
 
 def save_model(bgm, disc, epoch, model_dir = 'saved_model/'):
