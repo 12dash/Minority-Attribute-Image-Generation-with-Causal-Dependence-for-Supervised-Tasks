@@ -80,6 +80,62 @@ def train_step(train_dataloader, model, discriminator, A_optimizer,
     
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
 
+def eval_step(dataloader, model, discriminator, epoch, num_imgs=10):
+    model.eval()
+    discriminator.eval()
+    disc_loss, enc_loss, label_loss, gen_loss = [], [], [], []
+    with torch.no_grad():
+        for batch_idx, (x, label) in enumerate(dataloader):
+            x = x.to(device)
+            sup_flag = label[:, 0] != -1
+            if sup_flag.sum() > 0:
+                label = label[sup_flag, :].float().to(device)
+
+            ### Discriminator ###
+            z = torch.randn(x.size(0), latent_dim, device=x.device)
+            z_fake, x_fake, z, _ = model(x, z)
+            encoder_score = discriminator(x, z_fake.detach())
+            decoder_score = discriminator(x_fake.detach(), z.detach())
+
+            del z_fake
+            del x_fake
+
+            loss_d = F.softplus(decoder_score).mean() + F.softplus(-encoder_score).mean()
+            disc_loss.append(loss_d.item())
+
+            ### Encoder ###
+            z = torch.randn(x.size(0), latent_dim, device=x.device)
+            z_fake, x_fake, z, z_fake_mean = model(x, z)
+            encoder_score = discriminator(x, z_fake)
+            loss_encoder = encoder_score.mean()
+            if sup_flag.sum() > 0:
+                label_z = z_fake_mean[sup_flag, :num_label]
+                sup_loss = celoss(label_z, label)
+                label_loss.append(sup_loss.item())
+            else:
+                sup_loss = torch.zeros([1], device=device)
+            loss_encoder = loss_encoder + sup_loss * alpha
+            enc_loss.append(loss_encoder.item())
+
+            ### Decoder ###
+            z = torch.randn(x.size(0), latent_dim, device=x.device)
+            z_fake, x_fake, z, z_fake_mean = model(x, z)
+            decoder_score = discriminator(x_fake, z)
+            r_decoder = torch.exp(decoder_score.detach())
+            s_decoder = r_decoder.clamp(0.5, 2)
+            loss_decoder = -(s_decoder * decoder_score).mean()
+            gen_loss.append(loss_decoder.item())
+
+        for batch_idx, (x, label) in enumerate(val_dataloader):
+            x = x.to(device)[:num_imgs]
+            x_recon = model(x, recon=True)
+            x_recon = (x_recon * 0.5) + 0.5
+            plot_image(x_recon, epoch)
+            save_model(model, discriminator, epoch)
+            break
+
+    return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
+
 if __name__=="__main__":
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     print(f"Using {device} device")
@@ -109,6 +165,7 @@ if __name__=="__main__":
     d_conv_dim = 32
     dis_fc_size = 1024
 
+    ### Loading Data ###
     train_dataloader = get_dataloader(root_folder,'dear_train', img_dim=img_dim, 
                                     batch_size=batch_size, cols = cols)
     val_dataloader = get_dataloader(root_folder,'dear_val', img_dim=img_dim, 
@@ -120,52 +177,37 @@ if __name__=="__main__":
     A = torch.zeros((num_label, num_label), device = device)
     A[0, 2:6] = 1
     A[1, 4] = 1
+
+    ### Instantiate Models ###
     model = BGM(latent_dim, g_conv_dim, img_dim,
                 enc_dist, enc_arch, enc_fc_size, enc_noise_dim, dec_dist,
                 prior, num_label, A)
     discriminator = BigJointDiscriminator(latent_dim, d_conv_dim, img_dim, dis_fc_size)
 
-    A_optimizer, prior_optimizer = None, None
-
+    ### Optimisers ###
     enc_param = model.encoder.parameters()
     dec_param = list(model.decoder.parameters())
     prior_param = list(model.prior.parameters())
 
     A_optimizer = optim.Adam(prior_param[0:1], lr=5e-4)
     prior_optimizer = optim.Adam(prior_param[1:], lr=5e-4, betas=(0, 0.999))
-
     encoder_optimizer = optim.Adam(enc_param, lr=5e-5, betas=(0, 0.999))
     decoder_optimizer = optim.Adam(dec_param, lr=5e-5, betas=(0, 0.999))
     disc_optimizer = optim.Adam(discriminator.parameters(), lr=1e-4, betas=(0, 0.999))
 
     model = nn.DataParallel(model.to(device))
     discriminator = nn.DataParallel(discriminator.to(device))
-
     epochs = 50
-    d_steps_per_iter = 1
-    g_steps_per_iter = 1
 
-    number_batches = (len(train_dataloader.dataset)//batch_size)+1
-
-    for epoch in (range(epochs)):
-        model.train()
-        
+    for epoch in range(epochs):
         # Train Step
         enc_loss, gen_loss, disc_loss, label_loss = train_step(train_dataloader, model, discriminator, A_optimizer, 
                 prior_optimizer, encoder_optimizer, decoder_optimizer, disc_optimizer, 
                 d_steps_per_iter = 1, g_steps_per_iter = 1, alpha = 5)
-
-        print(f"[{epoch+1}/{epochs}] Encoder Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f}")
-
+        print(f"[{epoch+1}/{epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f}")
         
+        # Val Step
         if epoch % 5 == 0:
-            model.eval()
-            t = 10
-            for batch_idx, (x, label) in enumerate(val_dataloader):
-                with torch.no_grad():
-                    x = x.to(device)[:t]
-                    x_recon = model(x, recon=True)
-                    x_recon = (x_recon * 0.5) + 0.5
-                    plot_image(x_recon, epoch)
-                    save_model(model, discriminator, epoch)
-                break
+            enc_loss, gen_loss, disc_loss, label_loss = eval_step(val_dataloader, model, discriminator, epoch, num_imgs = 10)
+            print(f"[VAL] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f}")
+
