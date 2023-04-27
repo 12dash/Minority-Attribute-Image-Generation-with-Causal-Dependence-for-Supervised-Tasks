@@ -10,7 +10,7 @@ class ImageDataset(Dataset):
         self.transform=transform
         self.img_folder=root_folder+'img/img_align_celeba/'
         
-        self.attr = pd.read_csv(root_folder+file_name+'.csv').replace(-1,0).sample(frac=0.1).reset_index(drop=True)
+        self.attr = pd.read_csv(root_folder+file_name+'.csv').replace(-1,0).sample(frac=0.01).reset_index(drop=True)
         self.image_names = self.attr.pop('image_id')
         if cols is not None:
             self.attr = self.attr[cols]    
