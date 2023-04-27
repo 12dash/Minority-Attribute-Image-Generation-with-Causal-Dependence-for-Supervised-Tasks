@@ -4,12 +4,14 @@ from causal_model import *
 from util import plot_image, save_model
 from load_data import *
 
+import os
 import numpy as np
 import time
 
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
+
 
 global device
 global celoss
@@ -136,6 +138,11 @@ def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, a
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
 
 if __name__=="__main__":
+    try:
+        os.makedirs('plot')
+    except Exception as e:
+        pass
+
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     print(f"Using {device} device")
 
