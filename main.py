@@ -212,5 +212,5 @@ if __name__=="__main__":
             enc_loss, gen_loss, disc_loss, label_loss = eval_step(val_dataloader, model, discriminator, epoch, num_imgs = 10)
             print(f"[VAL] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} \n")
 
-    enc_loss, gen_loss, disc_loss, label_loss = eval_step(test_dataloader, model, discriminator, save = False, 'Test', num_imgs = 10)
+    enc_loss, gen_loss, disc_loss, label_loss = eval_step(test_dataloader, model, discriminator, 'Test', num_imgs = 10, save = False)
     print(f"[TEST] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} \n")
