@@ -8,10 +8,12 @@ def plot_image(img, epoch, num_imgs = 10, plot_dir = 'plot/'):
     with torch.no_grad():
         img = np.transpose(img.cpu().numpy(), (0, 2, 3, 1))
         for i in range(num_imgs):
-            ax[i].imshow(fake[i])
+            ax[i].imshow(img[i])
     plt.savefig(f"{plot_dir}{epoch}.jpg")
 
-def save_model(model_name, model, epoch, model_dir = 'saved_model/'):
-    path = f'{model_dir}{model_name}'
-    dic = {'epoch': epoch, 'model_state_dict': model.state_dict()}
-    torch.save(dic, path)
+def save_model(bgm, disc, epoch, model_dir = 'saved_model/'):
+    bgm_path = f'{model_dir}bgm'
+    torch.save({'epoch': epoch, 'model_state_dict': bgm.state_dict()}, bgm_path)
+
+    disc_path = f'{model_dir}disc'
+    torch.save(dic = {'epoch': epoch, 'model_state_dict': disc.state_dict()}, disc_path)

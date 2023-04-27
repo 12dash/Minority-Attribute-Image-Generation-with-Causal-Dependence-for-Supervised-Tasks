@@ -204,6 +204,5 @@ if __name__=="__main__":
                     x_recon = model(x, recon=True)
                     x_recon = (x_recon * 0.5) + 0.5
                     plot_image(x_recon, epoch)
-                    save_model('bgm', model, epoch)
-                    save_model('disc', discriminator, epoch)
+                    save_model(model, discriminator, epoch)
                 break
