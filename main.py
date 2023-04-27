@@ -1,28 +1,24 @@
+from bgm import *
+from sagan import *
+from causal_model import *
+
+import os
 import sys
+import random
+import pandas as pd
+import numpy as np
+
+from PIL import Image
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 import torch
 import torch.utils.data
 from torch import nn, optim
 from torch.nn import functional as F
 from torchvision.utils import save_image
-import argparse
-import numpy as np
-import matplotlib.pyplot as plt
-
-from bgm import *
-from sagan import *
-from causal_model import *
-import os
-import random
-import utils
-
-import pandas as pd
-from PIL import Image
-import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import ToTensor, Compose, Resize, Normalize
-
-from tqdm.notebook import tqdm
-import seaborn as sns
 
 
 class ImageDataset(Dataset):
@@ -30,7 +26,7 @@ class ImageDataset(Dataset):
         self.transform=transform
         self.img_folder=root_folder+'img/img_align_celeba/'
         
-        self.attr = pd.read_csv(root_folder+'attr.csv').replace(-1,0)
+        self.attr = pd.read_csv(root_folder+'attr.csv').replace(-1,0).sample(frac=0.1)
         self.image_names = self.attr.pop('image_id')
         if cols is not None:
             self.attr = self.attr[cols]    
@@ -60,7 +56,6 @@ def get_train_dataloader(root_folder, img_dim=64, batch_size=32, cols = None):
                                   shuffle = True, prefetch_factor = 4)
     return train_dataloader
 
-# +
 def plot_image(fake, p):
     with torch.no_grad():
         fake = np.transpose(fake.cpu().numpy(), (0, 2, 3, 1))
@@ -72,9 +67,6 @@ def plot_image(fake, p):
 def save_model_state(model_name, model, epoch):
     path = f'model/{model_name}'
     torch.save({'epoch': epoch, 'model_state_dict': model.state_dict()}, path)
-
-
-# -
 
 global device
 global celoss
