@@ -3,14 +3,14 @@ from PIL import Image
 
 import torch
 from torch.utils.data import DataLoader, Dataset
-from torchvision.transforms import ToTensor, Compose, Resize, Normalize
+from torchvision.transforms import ToTensor, Compose, Resize, Normalize, CenterCrop
 
 class ImageDataset(Dataset):
     def __init__(self, root_folder, file_name, transform, cols = None):
         self.transform=transform
         self.img_folder=root_folder+'img/img_align_celeba/'
         
-        self.attr = pd.read_csv(root_folder+file_name+'.csv').replace(-1,0).reset_index(drop=True)
+        self.attr = pd.read_csv(root_folder+file_name+'.csv').replace(-1,0).sample(frac=0.01).reset_index(drop=True)
         self.image_names = self.attr.pop('image_id')
         if cols is not None:
             self.attr = self.attr[cols]    
@@ -30,7 +30,8 @@ class ImageDataset(Dataset):
         return image, label
 
 def get_dataloader(root_folder, file_name = 'dear_train', img_dim=64, batch_size=32, cols = None):
-    transform = Compose([Resize((img_dim, img_dim)),
+    transform = Compose([CenterCrop(128),
+                        Resize((img_dim, img_dim)),
                         ToTensor(),
                         Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     data = ImageDataset(root_folder=root_folder, file_name = file_name, transform=transform, cols = cols)

@@ -3,12 +3,16 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-def plot_image(img, epoch, num_imgs = 10, plot_dir = 'plot/'):
-    _, ax = plt.subplots(1, num_imgs, figsize=(24,4))
+def plot_image(orig, fake_img, epoch, num_imgs = 10, plot_dir = 'plot/'):
+    _, ax = plt.subplots(2, num_imgs, figsize=(24,8))
     with torch.no_grad():
-        img = np.transpose(img.cpu().numpy(), (0, 2, 3, 1))
+        orig = np.transpose(orig.cpu().numpy(), (0, 2, 3, 1))
         for i in range(num_imgs):
-            ax[i].imshow(img[i])
+            ax[0][i].imshow(orig[i])
+
+        fake_img = np.transpose(fake_img.cpu().numpy(), (0, 2, 3, 1))
+        for i in range(num_imgs):
+            ax[1][i].imshow(fake_img[i])
     plt.savefig(f"{plot_dir}{epoch}.jpg")
 
 def save_model(bgm, disc, epoch, model_dir = 'saved_model/'):

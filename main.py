@@ -130,7 +130,8 @@ def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, a
             x = x.to(device)[:num_imgs]
             x_recon = model(x, recon=True)
             x_recon = (x_recon * 0.5) + 0.5
-            plot_image(x_recon, epoch)
+            x = (x * 0.5) + 0.5
+            plot_image(x, x_recon, epoch)
             if save:
                 save_model(model, discriminator, epoch)
             break
