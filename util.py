@@ -16,4 +16,4 @@ def save_model(bgm, disc, epoch, model_dir = 'saved_model/'):
     torch.save({'epoch': epoch, 'model_state_dict': bgm.state_dict()}, bgm_path)
 
     disc_path = f'{model_dir}disc'
-    torch.save(dic = {'epoch': epoch, 'model_state_dict': disc.state_dict()}, disc_path)
+    torch.save({'epoch': epoch, 'model_state_dict': disc.state_dict()}, disc_path)
