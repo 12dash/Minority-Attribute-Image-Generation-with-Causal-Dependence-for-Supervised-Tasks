@@ -20,13 +20,12 @@ from torchvision.utils import save_image
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import ToTensor, Compose, Resize, Normalize
 
-
 class ImageDataset(Dataset):
     def __init__(self,root_folder,transform, cols = None):
         self.transform=transform
         self.img_folder=root_folder+'img/img_align_celeba/'
         
-        self.attr = pd.read_csv(root_folder+'attr.csv').replace(-1,0).sample(frac=0.1)
+        self.attr = pd.read_csv(root_folder+'attr.csv').replace(-1,0).sample(frac=0.1).reset_index(drop=True)
         self.image_names = self.attr.pop('image_id')
         if cols is not None:
             self.attr = self.attr[cols]    
@@ -43,15 +42,13 @@ class ImageDataset(Dataset):
         image=Image.open(image_path)
         image=self.transform(image)
         label = torch.tensor(self.attr[index], dtype = torch.float)
-
         return image, label
 
 def get_train_dataloader(root_folder, img_dim=64, batch_size=32, cols = None):
-
     transform = Compose([Resize((img_dim, img_dim)),
                         ToTensor(),
                         Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    training_data = ImageDataset(root_folder='dataset/celebA/',transform=transform, cols = cols)
+    training_data = ImageDataset(root_folder=root_folder, transform=transform, cols = cols)
     train_dataloader = DataLoader(training_data, batch_size = batch_size, num_workers = 2, 
                                   shuffle = True, prefetch_factor = 4)
     return train_dataloader
@@ -65,7 +62,7 @@ def plot_image(fake, p):
         plt.savefig(p)
         
 def save_model_state(model_name, model, epoch):
-    path = f'model/{model_name}'
+    path = f'saved_model/{model_name}'
     torch.save({'epoch': epoch, 'model_state_dict': model.state_dict()}, path)
 
 global device
@@ -78,8 +75,8 @@ if __name__=="__main__":
 
     celoss = torch.nn.BCEWithLogitsLoss()
     cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
-
-    root_folder = 'sample_data/'
+    num_label = len(cols)
+    root_folder = 'dataset/celebA/'
 
     in_channels = 3
     fc_size = 2048
@@ -99,11 +96,9 @@ if __name__=="__main__":
     d_conv_dim = 32
     dis_fc_size = 1024
 
-    num_label = len(cols)
-
     train_dataloader = get_train_dataloader(root_folder, img_dim=img_dim, 
-                                        batch_size=batch_size, cols = cols, 
-                                       )
+                                            batch_size=batch_size, cols = cols)
+
     A = torch.zeros((num_label, num_label), device = device)
     A[0, 2:6] = 1
     A[1, 4] = 1
