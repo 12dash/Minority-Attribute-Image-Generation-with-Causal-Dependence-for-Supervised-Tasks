@@ -25,7 +25,7 @@ class ImageDataset(Dataset):
         self.transform=transform
         self.img_folder=root_folder+'img/img_align_celeba/'
         
-        self.attr = pd.read_csv(root_folder+'attr.csv').replace(-1,0).sample(frac=0.1).reset_index(drop=True)
+        self.attr = pd.read_csv(root_folder+'attr.csv').replace(-1,0).sample(frac=0.01).reset_index(drop=True)
         self.image_names = self.attr.pop('image_id')
         if cols is not None:
             self.attr = self.attr[cols]    
@@ -85,6 +85,8 @@ if __name__=="__main__":
     img_dim = 64
     batch_size = 128
 
+
+    ### BGM PARAMETERS ###
     g_conv_dim = 32
     enc_dist='gaussian'
     enc_arch='resnet'
@@ -93,12 +95,14 @@ if __name__=="__main__":
     dec_dist = 'implicit'
     prior = 'linscm'
 
+    ### DISCRIIMINATOR ###
     d_conv_dim = 32
     dis_fc_size = 1024
 
     train_dataloader = get_train_dataloader(root_folder, img_dim=img_dim, 
                                             batch_size=batch_size, cols = cols)
 
+    ### MATRIX ENCODING CAUSAL DIAGRAM ###
     A = torch.zeros((num_label, num_label), device = device)
     A[0, 2:6] = 1
     A[1, 4] = 1
@@ -107,8 +111,7 @@ if __name__=="__main__":
                 prior, num_label, A)
     discriminator = BigJointDiscriminator(latent_dim, d_conv_dim, img_dim, dis_fc_size)
 
-    A_optimizer = None
-    prior_optimizer = None
+    A_optimizer, prior_optimizer = None, None
 
     enc_param = model.encoder.parameters()
     dec_param = list(model.decoder.parameters())
