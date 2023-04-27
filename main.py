@@ -80,7 +80,7 @@ def train_step(train_dataloader, model, discriminator, A_optimizer,
     
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
 
-def eval_step(dataloader, model, discriminator, epoch, num_imgs=10, alpha = 5):
+def eval_step(dataloader, model, discriminator, epoch, save=True num_imgs=10, alpha = 5):
     model.eval()
     discriminator.eval()
     disc_loss, enc_loss, label_loss, gen_loss = [], [], [], []
@@ -131,7 +131,8 @@ def eval_step(dataloader, model, discriminator, epoch, num_imgs=10, alpha = 5):
             x_recon = model(x, recon=True)
             x_recon = (x_recon * 0.5) + 0.5
             plot_image(x_recon, epoch)
-            save_model(model, discriminator, epoch)
+            if save:
+                save_model(model, discriminator, epoch)
             break
 
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
@@ -207,7 +208,9 @@ if __name__=="__main__":
         print(f"[{epoch+1}/{epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f}")
         
         # Val Step
-        if epoch % 5 == 0:
+        if (epoch+1) % 5 == 0:
             enc_loss, gen_loss, disc_loss, label_loss = eval_step(val_dataloader, model, discriminator, epoch, num_imgs = 10)
-            print(f"[VAL] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f}")
+            print(f"[VAL] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} \n")
 
+    enc_loss, gen_loss, disc_loss, label_loss = eval_step(test_dataloader, model, save = False, discriminator, 'Test', num_imgs = 10)
+    print(f"[TEST] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} \n")
