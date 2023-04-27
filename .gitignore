@@ -1,4 +1,4 @@
-model/*
+saved_model/*
 .ipynb_checkpoints/*
 .DS_Store
 
