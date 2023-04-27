@@ -4,23 +4,14 @@ from causal_model import *
 from util import plot_image, save_model
 from load_data import *
 
-import os
-import sys
-import random
-import pandas as pd
 import numpy as np
-
 from PIL import Image
-import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 import torch
-import torch.utils.data
 from torch import nn, optim
 from torch.nn import functional as F
-from torchvision.utils import save_image
-from torch.utils.data import DataLoader, Dataset
-from torchvision.transforms import ToTensor, Compose, Resize, Normalize
 
 global device
 global celoss
