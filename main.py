@@ -80,7 +80,7 @@ def train_step(train_dataloader, model, discriminator, A_optimizer,
     
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
 
-def eval_step(dataloader, model, discriminator, epoch, save=True num_imgs=10, alpha = 5):
+def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, alpha = 5):
     model.eval()
     discriminator.eval()
     disc_loss, enc_loss, label_loss, gen_loss = [], [], [], []
