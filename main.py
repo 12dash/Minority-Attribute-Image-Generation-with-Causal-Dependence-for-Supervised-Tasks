@@ -208,15 +208,15 @@ if __name__=="__main__":
 
     for epoch in range(epochs):
         # Train Step
-        t1 = time.time()
-        enc_loss, gen_loss, disc_loss, label_loss = train_step(train_dataloader, model, discriminator, A_optimizer, 
-                prior_optimizer, encoder_optimizer, decoder_optimizer, disc_optimizer, 
-                d_steps_per_iter = 1, g_steps_per_iter = 1, alpha = 5)
-        train_time = (time.time() - t1) / 60
-        print(f"[{epoch+1}/{epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} Time : {train_time:>.3f} min")
+        #t1 = time.time()
+        #enc_loss, gen_loss, disc_loss, label_loss = train_step(train_dataloader, model, discriminator, A_optimizer, 
+        #        prior_optimizer, encoder_optimizer, decoder_optimizer, disc_optimizer, 
+        #        d_steps_per_iter = 1, g_steps_per_iter = 1, alpha = 5)
+        #train_time = (time.time() - t1) / 60
+        #print(f"[{epoch+1}/{epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} Time : {train_time:>.3f} min")
         
         # Val Step
-        if (epoch+1) % 5 == 0:
+        if (epoch) % 5 == 0:
             enc_loss, gen_loss, disc_loss, label_loss = eval_step(val_dataloader, model, discriminator, epoch+1, num_imgs = 10)
             print(f"[VAL] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} \n")
 

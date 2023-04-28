@@ -205,8 +205,8 @@ class BGM(nn.Module):
                     #### ADDING SIGMOID LAYER ###
                     label_z = torch.sigmoid(label_z)
                     #############################
-                    other_z = z[:, self.num_label:]
-                    z = torch.cat([label_z, other_z], dim=1)
+                    other_z = z_fake[:, self.num_label:]
+                    z_fake = torch.cat([label_z, other_z], dim=1)
                 return self.decoder(z_fake)
 
             # Representation
