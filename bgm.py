@@ -148,6 +148,10 @@ class BGM(nn.Module):
             z = eps
         else:
             label_z = self.prior(eps[:, :dim])
+            #### ADDING SIGMOID LAYER ###
+            label_z = torch.sigmoid(label_z)
+            #############################
+
             other_z = eps[:, dim:]
             z = torch.cat([label_z, other_z], dim=1)
         for idx in range(dim):
@@ -173,8 +177,7 @@ class BGM(nn.Module):
                 label_z = self.prior(z[:, :self.num_label]) # z after causal layer
                 #### ADDING SIGMOID LAYER ###
                 label_z = torch.sigmoid(label_z)
-
-
+                #############################
                 other_z = z[:, self.num_label:]
                 z = torch.cat([label_z, other_z], dim=1)
 
@@ -197,6 +200,13 @@ class BGM(nn.Module):
                 z_fake = self.encoder(x)
             # Reconstruction
             if recon:
+                if 'scm' in self.prior_dist:
+                    label_z = self.prior(z_fake[:, :self.num_label]) # z after causal layer
+                    #### ADDING SIGMOID LAYER ###
+                    label_z = torch.sigmoid(label_z)
+                    #############################
+                    other_z = z[:, self.num_label:]
+                    z = torch.cat([label_z, other_z], dim=1)
                 return self.decoder(z_fake)
 
             # Representation
@@ -213,7 +223,7 @@ class BGM(nn.Module):
                 label_z = self.prior(z[:, :self.num_label])  # z after causal layer
                 #### ADDING SIGMOID LAYER ###
                 label_z = torch.sigmoid(label_z)
-                
+                #############################
                 other_z = z[:, self.num_label:]
                 z = torch.cat([label_z, other_z], dim=1)
             return self.decoder(z)
