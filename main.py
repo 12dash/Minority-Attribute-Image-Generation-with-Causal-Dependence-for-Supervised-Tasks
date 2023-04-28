@@ -216,7 +216,7 @@ if __name__=="__main__":
         print(f"[{epoch+1}/{epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} Time : {train_time:>.3f} min")
         
         # Val Step
-        if (epoch) % 5 == 0:
+        if (epoch+1) % 5 == 0:
             enc_loss, gen_loss, disc_loss, label_loss = eval_step(val_dataloader, model, discriminator, epoch+1, num_imgs = 10)
             print(f"[VAL] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} \n")
 
