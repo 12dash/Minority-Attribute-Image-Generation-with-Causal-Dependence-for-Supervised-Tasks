@@ -204,7 +204,7 @@ if __name__=="__main__":
 
     model = nn.DataParallel(model.to(device))
     discriminator = nn.DataParallel(discriminator.to(device))
-    epochs = 100
+    epochs = 50
 
     for epoch in range(epochs):
         # Train Step
