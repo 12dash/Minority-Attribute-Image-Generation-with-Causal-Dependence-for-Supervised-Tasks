@@ -194,10 +194,6 @@ class BGM(nn.Module):
                 z_fake = self.encoder(x)
             # Reconstruction
             if recon:
-                if 'scm' in self.prior_dist:
-                    label_z = self.prior(z_fake[:, :self.num_label]) # z after causal layer
-                    other_z = z_fake[:, self.num_label:]
-                    z_fake = torch.cat([label_z, other_z], dim=1)
                 return self.decoder(z_fake)
 
             # Representation
