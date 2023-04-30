@@ -148,7 +148,6 @@ class BGM(nn.Module):
             z = eps
         else:
             label_z = self.prior(eps[:, :dim])
-
             other_z = eps[:, dim:]
             z = torch.cat([label_z, other_z], dim=1)
         for idx in range(dim):
