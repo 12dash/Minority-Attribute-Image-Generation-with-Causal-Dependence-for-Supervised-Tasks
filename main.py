@@ -80,7 +80,7 @@ def train_step(train_dataloader, model, discriminator, A_optimizer,
     
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
 
-def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, alpha = 5):
+def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, alpha = 5, model_dir = None):
     model.eval()
     discriminator.eval()
     disc_loss, enc_loss, label_loss, gen_loss = [], [], [], []
@@ -133,7 +133,7 @@ def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, a
             x = (x * 0.5) + 0.5
             plot_image(x, x_recon, epoch)
             if save:
-                save_model(model, discriminator, epoch)
+                save_model(model, discriminator, epoch, model_dir)
             break
 
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
@@ -148,7 +148,10 @@ if __name__=="__main__":
     print(f"Using {device} device")
 
     celoss = torch.nn.BCEWithLogitsLoss()
-    cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
+    #cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
+    cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
+    model_dir = 'saved_model_attractive/'
+    
     num_label = len(cols)
     root_folder = 'dataset/celebA/'
 
@@ -182,8 +185,9 @@ if __name__=="__main__":
 
     ### MATRIX ENCODING CAUSAL DIAGRAM ###
     A = torch.zeros((num_label, num_label), device = device)
-    A[0, 2:6] = 1
+    A[0, 2:7] = 1
     A[1, 4] = 1
+    A[1, 5] = 1
 
     ### Instantiate Models ###
     model = BGM(latent_dim, g_conv_dim, img_dim,
@@ -204,7 +208,7 @@ if __name__=="__main__":
 
     model = nn.DataParallel(model.to(device))
     discriminator = nn.DataParallel(discriminator.to(device))
-    epochs = 200
+    epochs = 100
 
     for epoch in range(epochs):
         # Train Step

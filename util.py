@@ -20,6 +20,11 @@ def plot_image(orig, fake_img, epoch, num_imgs = 10, plot_dir = 'plot/'):
     plt.savefig(f"{plot_dir}{epoch}.jpg")
 
 def save_model(bgm, disc, epoch, model_dir = 'saved_model/'):
+    try:
+        os.makedirs(model_dir)
+    except Exception as e:
+        pass
+        
     bgm_path = f'{model_dir}bgm'
     torch.save({'epoch': epoch, 'model_state_dict': bgm.state_dict()}, bgm_path)
 
