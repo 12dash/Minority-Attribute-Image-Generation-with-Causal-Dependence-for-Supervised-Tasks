@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 
@@ -24,7 +25,7 @@ def save_model(bgm, disc, epoch, model_dir = 'saved_model/'):
         os.makedirs(model_dir)
     except Exception as e:
         pass
-        
+
     bgm_path = f'{model_dir}bgm'
     torch.save({'epoch': epoch, 'model_state_dict': bgm.state_dict()}, bgm_path)
 
