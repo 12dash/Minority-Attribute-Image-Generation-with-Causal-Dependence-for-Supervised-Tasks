@@ -150,7 +150,7 @@ if __name__=="__main__":
     celoss = torch.nn.BCEWithLogitsLoss()
     #cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
     cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
-    model_dir = 'saved_model_attractive_downsampled_data/'
+    model_dir = 'saved_model_attractive/'
     
     num_label = len(cols)
     root_folder = 'dataset/celebA/'
