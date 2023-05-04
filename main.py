@@ -217,7 +217,7 @@ if __name__=="__main__":
         model.load_state_dict(checkpoint_bgm['model_state_dict'])
         prev_epoch = checkpoint_bgm['epoch']
         checkpoint_disc = torch.load(f'{model_dir}/disc')
-        disc.load_state_dict(checkpoint_disc['model_state_dict'])
+        discriminator.load_state_dict(checkpoint_disc['model_state_dict'])
         print('Succesfully Loaded from previous checkpoint')
 
     prev_epoch = 200 if prev_epoch == 'Test' else prev_epoch
