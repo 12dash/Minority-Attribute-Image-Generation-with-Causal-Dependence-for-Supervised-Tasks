@@ -149,7 +149,7 @@ if __name__=="__main__":
     celoss = torch.nn.BCEWithLogitsLoss()
     cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
     #cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
-    model_dir = 'saved_model/'
+    model_dir = 'saved_model_downsample/'
     
     num_label = len(cols)
     root_folder = 'dataset/celebA/'
@@ -175,7 +175,7 @@ if __name__=="__main__":
     dis_fc_size = 1024
 
     ### Loading Data ###
-    train_dataloader = get_dataloader(root_folder,'dear_train', img_dim=img_dim, 
+    train_dataloader = get_dataloader(root_folder,'dear_train_downsample', img_dim=img_dim, 
                                     batch_size=batch_size, cols = cols)
     val_dataloader = get_dataloader(root_folder,'dear_val', img_dim=img_dim, 
                                     batch_size=batch_size, cols = cols)       
