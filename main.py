@@ -149,14 +149,14 @@ if __name__=="__main__":
     celoss = torch.nn.BCEWithLogitsLoss()
     cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
     #cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
-    model_dir = 'saved_model_downsample_smile_reduce_latent_dim/'
+    model_dir = 'saved_model_downsample_smile_increase_latent_dim/'
     
     num_label = len(cols)
     root_folder = 'dataset/celebA/'
 
     in_channels = 3
     fc_size = 2048
-    latent_dim = 10
+    latent_dim = 150
 
     img_dim = 64
     batch_size = 128
@@ -213,12 +213,15 @@ if __name__=="__main__":
     load_model = True
     prev_epoch = 0
     if load_model:
-        checkpoint_bgm = torch.load(f'{model_dir}/bgm')
-        model.load_state_dict(checkpoint_bgm['model_state_dict'])
-        prev_epoch = checkpoint_bgm['epoch']
-        checkpoint_disc = torch.load(f'{model_dir}/disc')
-        discriminator.load_state_dict(checkpoint_disc['model_state_dict'])
-        print('Succesfully Loaded from previous checkpoint')
+        try:
+            checkpoint_bgm = torch.load(f'{model_dir}/bgm')
+            model.load_state_dict(checkpoint_bgm['model_state_dict'])
+            prev_epoch = checkpoint_bgm['epoch']
+            checkpoint_disc = torch.load(f'{model_dir}/disc')
+            discriminator.load_state_dict(checkpoint_disc['model_state_dict'])
+            print('Succesfully Loaded from previous checkpoint')
+        except Exception as e:
+            print('Model could not be loaded : ', e)
 
     prev_epoch = 200 if prev_epoch == 'Test' else prev_epoch
     epochs = 100
