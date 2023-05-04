@@ -159,7 +159,7 @@ if __name__=="__main__":
     latent_dim = 100
 
     img_dim = 64
-    batch_size = 64
+    batch_size = 128
 
     ### BGM PARAMETERS ###
     g_conv_dim = 32
