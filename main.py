@@ -12,7 +12,6 @@ import torch
 from torch import nn, optim
 from torch.nn import functional as F
 
-
 global device
 global celoss
 
@@ -148,9 +147,9 @@ if __name__=="__main__":
     print(f"Using {device} device")
 
     celoss = torch.nn.BCEWithLogitsLoss()
-    #cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
-    cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
-    model_dir = 'saved_model_attractive/'
+    cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
+    #cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
+    model_dir = 'saved_model/'
     
     num_label = len(cols)
     root_folder = 'dataset/celebA/'
@@ -160,7 +159,7 @@ if __name__=="__main__":
     latent_dim = 100
 
     img_dim = 64
-    batch_size = 128
+    batch_size = 64
 
     ### BGM PARAMETERS ###
     g_conv_dim = 32
@@ -185,9 +184,12 @@ if __name__=="__main__":
 
     ### MATRIX ENCODING CAUSAL DIAGRAM ###
     A = torch.zeros((num_label, num_label), device = device)
-    A[0, 2:7] = 1
+    #A[0, 2:7] = 1
+    #A[1, 4] = 1
+    #A[1, 5] = 1
+
+    A[0, 2:6] = 1
     A[1, 4] = 1
-    A[1, 5] = 1
 
     ### Instantiate Models ###
     model = BGM(latent_dim, g_conv_dim, img_dim,
@@ -208,7 +210,7 @@ if __name__=="__main__":
 
     model = nn.DataParallel(model.to(device))
     discriminator = nn.DataParallel(discriminator.to(device))
-    epochs = 100
+    epochs = 300
 
     for epoch in range(epochs):
         # Train Step

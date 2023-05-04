@@ -1,5 +1,6 @@
 saved_model/*
 saved_model*
+synthetic_dataset/*
 .ipynb_checkpoints/*
 .DS_Store
 
