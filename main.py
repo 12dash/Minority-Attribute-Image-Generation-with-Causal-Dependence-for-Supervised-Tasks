@@ -175,7 +175,7 @@ if __name__=="__main__":
     dis_fc_size = 1024
 
     ### Loading Data ###
-    train_dataloader = get_dataloader(root_folder,'dear_train_downsample', img_dim=img_dim, 
+    train_dataloader = get_dataloader(root_folder,'dear_train_downsample_smile', img_dim=img_dim, 
                                     batch_size=batch_size, cols = cols)
     val_dataloader = get_dataloader(root_folder,'dear_val', img_dim=img_dim, 
                                     batch_size=batch_size, cols = cols)       
