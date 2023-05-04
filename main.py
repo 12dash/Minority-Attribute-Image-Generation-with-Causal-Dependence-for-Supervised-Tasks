@@ -149,14 +149,14 @@ if __name__=="__main__":
     celoss = torch.nn.BCEWithLogitsLoss()
     cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
     #cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
-    model_dir = 'saved_model_downsample_smile/'
+    model_dir = 'saved_model_downsample_smile_reduce_latent_dim/'
     
     num_label = len(cols)
     root_folder = 'dataset/celebA/'
 
     in_channels = 3
     fc_size = 2048
-    latent_dim = 100
+    latent_dim = 10
 
     img_dim = 64
     batch_size = 128
