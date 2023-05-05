@@ -224,7 +224,7 @@ if __name__=="__main__":
             print('Model could not be loaded : ', e)
 
     prev_epoch = 200 if prev_epoch == 'Test' else prev_epoch
-    epochs = 100
+    epochs = 200
 
     for epoch in range(prev_epoch, prev_epoch+epochs):
         # Train Step
