@@ -149,14 +149,14 @@ if __name__=="__main__":
     celoss = torch.nn.BCEWithLogitsLoss()
     cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
     #cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
-    model_dir = 'saved_model_downsample_smile_increase_latent_dim/'
+    model_dir = 'saved_model_downsample_smile_reduce_latent_dim/'
     
     num_label = len(cols)
     root_folder = 'dataset/celebA/'
 
     in_channels = 3
     fc_size = 2048
-    latent_dim = 150
+    latent_dim = 10
 
     img_dim = 64
     batch_size = 128
@@ -233,7 +233,7 @@ if __name__=="__main__":
                 prior_optimizer, encoder_optimizer, decoder_optimizer, disc_optimizer, 
                 d_steps_per_iter = 1, g_steps_per_iter = 1, alpha = 5)
         train_time = (time.time() - t1) / 60
-        print(f"[{epoch+1}/{epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} Time : {train_time:>.3f} min")
+        print(f"[{epoch+1}/{prev_epoch+epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} Time : {train_time:>.3f} min")
         
         # Val Step
         if (epoch+1) % 5 == 0:
