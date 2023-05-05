@@ -1,8 +1,9 @@
 saved_model/*
 saved_model*
-synthetic_dataset/*
+synthetic*
 .ipynb_checkpoints/*
 .DS_Store
+latent_dataset*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
