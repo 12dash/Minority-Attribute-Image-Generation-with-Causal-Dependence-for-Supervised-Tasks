@@ -1,9 +1,9 @@
-from sagan import *
-import torchvision.models as models
-from resnet import *
-import torch.nn.init as init
-from causal_model import *
+from models.sagan import *
+from models.causal_model import *
+from models.resnet import *
 
+import torchvision.models as models
+import torch.nn.init as init
 
 class ResEncoder(nn.Module):
     r'''ResNet Encoder
@@ -140,7 +140,7 @@ class BGM(nn.Module):
         else: #gaussian
             return self.decoder(z, mu=mean)
 
-    def traverse(self, eps, gap=3, n=10):
+    def traverse(self, eps, gap=30, n=10):
         dim = self.num_label if self.num_label is not None else self.latent_dim
         sample = torch.zeros((n * dim, 3, self.image_size, self.image_size))
         eps = eps.expand(n, self.latent_dim)

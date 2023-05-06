@@ -1,6 +1,6 @@
-from bgm import *
-from sagan import *
-from causal_model import *
+from models.bgm import *
+from models.sagan import *
+from models.causal_model import *
 from util import plot_image, save_model
 from load_data import *
 
@@ -79,7 +79,7 @@ def train_step(train_dataloader, model, discriminator, A_optimizer,
     
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
 
-def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, alpha = 5, model_dir = None):
+def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, alpha = 5, model_dir = None, plot_=False):
     model.eval()
     discriminator.eval()
     disc_loss, enc_loss, label_loss, gen_loss = [], [], [], []
@@ -125,15 +125,18 @@ def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, a
             loss_decoder = -(s_decoder * decoder_score).mean()
             gen_loss.append(loss_decoder.item())
 
-        for batch_idx, (x, label) in enumerate(dataloader):
-            x = x.to(device)[:num_imgs]
-            x_recon = model(x, recon=True)
-            x_recon = (x_recon * 0.5) + 0.5
-            x = (x * 0.5) + 0.5
-            plot_image(x, x_recon, epoch)
-            if save:
-                save_model(model, discriminator, epoch, model_dir)
-            break
+        if save:
+            save_model(model, discriminator, epoch, model_dir)
+            
+        if plot_:
+            for batch_idx, (x, label) in enumerate(dataloader):
+                x = x.to(device)[:num_imgs]
+                x_recon = model(x, recon=True)
+                x_recon = (x_recon * 0.5) + 0.5
+                x = (x * 0.5) + 0.5
+                plot_image(x, x_recon, epoch)
+                
+                break
 
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
 
@@ -143,13 +146,18 @@ if __name__=="__main__":
     except Exception as e:
         pass
 
+    try:
+        os.makedirs('saved_model')
+    except Exception as e:
+        pass
+
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     print(f"Using {device} device")
 
     celoss = torch.nn.BCEWithLogitsLoss()
     cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
     #cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
-    model_dir = 'saved_model_downsample_smile_reduce_latent_dim/'
+    model_dir = 'downsample_smile_lm_10/'
     
     num_label = len(cols)
     root_folder = 'dataset/celebA/'
@@ -214,10 +222,10 @@ if __name__=="__main__":
     prev_epoch = 0
     if load_model:
         try:
-            checkpoint_bgm = torch.load(f'{model_dir}/bgm')
+            checkpoint_bgm = torch.load(f'saved_model/{model_dir}/bgm')
             model.load_state_dict(checkpoint_bgm['model_state_dict'])
             prev_epoch = checkpoint_bgm['epoch']
-            checkpoint_disc = torch.load(f'{model_dir}/disc')
+            checkpoint_disc = torch.load(f'saved_model/{model_dir}/disc')
             discriminator.load_state_dict(checkpoint_disc['model_state_dict'])
             print('Succesfully Loaded from previous checkpoint')
         except Exception as e:
