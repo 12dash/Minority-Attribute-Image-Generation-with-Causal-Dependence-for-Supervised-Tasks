@@ -23,7 +23,7 @@ def train_step(train_dataloader, model, discriminator, A_optimizer,
     disc_loss, enc_loss, label_loss, gen_loss = [], [], [], []
     for batch_idx, (x, label) in enumerate(train_dataloader):
         x = x.to(device)
-        sup_flag = label[:, 0] != -1
+        sup_flag = label[:, 0] != 0
         if sup_flag.sum() > 0:
             label = label[sup_flag, :].float().to(device)
 
@@ -127,7 +127,7 @@ def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, a
 
         if save:
             save_model(model, discriminator, epoch, model_dir)
-            
+
         if plot_:
             for batch_idx, (x, label) in enumerate(dataloader):
                 x = x.to(device)[:num_imgs]
@@ -157,6 +157,7 @@ if __name__=="__main__":
     celoss = torch.nn.BCEWithLogitsLoss()
     cols = ['Smiling', 'Male', 'High_Cheekbones', 'Mouth_Slightly_Open', 'Narrow_Eyes', 'Chubby']
     #cols = ['Young', 'Male', 'Bags_Under_Eyes', 'Chubby', 'Heavy_Makeup', 'Receding_Hairline', 'Gray_Hair']
+    
     model_dir = 'downsample_smile_lm_10/'
     
     num_label = len(cols)
@@ -241,7 +242,8 @@ if __name__=="__main__":
                 prior_optimizer, encoder_optimizer, decoder_optimizer, disc_optimizer, 
                 d_steps_per_iter = 1, g_steps_per_iter = 1, alpha = 5)
         train_time = (time.time() - t1) / 60
-        print(f"[{epoch+1}/{prev_epoch+epochs}] Enc Loss : {enc_loss:>.5f} Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} Time : {train_time:>.3f} min")
+        print(f"[{epoch+1}/{prev_epoch+epochs}] Enc Loss : {enc_loss:>.5f}\
+         Gen Loss : {gen_loss:>.5f} Disc Loss : {disc_loss:>.5f}  Label Loss : {label_loss:>.5f} Time : {train_time:>.3f} min")
         
         # Val Step
         if (epoch+1) % 5 == 0:
