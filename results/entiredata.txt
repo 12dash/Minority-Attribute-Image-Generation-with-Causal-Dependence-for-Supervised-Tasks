@@ -1,0 +1,6 @@
+Accuracy for class: 0 , attr: 0: 88.2179675994109 total: 5432
+Accuracy for class: 0 , attr: 1: 92.80835676978707 total: 4978
+Accuracy for class: 1 , attr: 0: 92.82936693109349 total: 6429
+Accuracy for class: 1 , attr: 1: 84.39052908506285 total: 3421
+
+ Accuracy Overall : 0.9016288252714709

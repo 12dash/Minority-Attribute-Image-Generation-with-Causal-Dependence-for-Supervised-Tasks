@@ -29,12 +29,12 @@ class ImageDataset(Dataset):
         label = torch.tensor(self.attr[index], dtype = torch.float)
         return image, label
 
-def get_dataloader(root_folder, file_name = 'dear_train', img_dim=64, batch_size=32, cols = None):
+def get_dataloader(root_folder, file_name = 'dear_train', img_dim=64, batch_size=32, cols = None, shuffle=True):
     transform = Compose([CenterCrop(128),
                         Resize((img_dim, img_dim)),
                         ToTensor(),
                         Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     data = ImageDataset(root_folder=root_folder, file_name = file_name, transform=transform, cols = cols)
     dataloader = DataLoader(data, batch_size = batch_size, num_workers = 2, 
-                                  shuffle = True, prefetch_factor = 4)
+                                  shuffle = shuffle, prefetch_factor = 4)
     return dataloader

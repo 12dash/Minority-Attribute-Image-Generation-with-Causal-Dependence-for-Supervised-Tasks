@@ -1,7 +1,7 @@
 from models.bgm import *
 from models.sagan import *
 from models.causal_model import *
-from util import plot_image, save_model
+from util import *
 from load_data import *
 
 import os
@@ -141,15 +141,8 @@ def eval_step(dataloader, model, discriminator, epoch, save=True, num_imgs=10, a
     return np.mean(enc_loss), np.mean(gen_loss), np.mean(disc_loss), np.mean(label_loss)
 
 if __name__=="__main__":
-    try:
-        os.makedirs('plot')
-    except Exception as e:
-        pass
-
-    try:
-        os.makedirs('saved_model')
-    except Exception as e:
-        pass
+    make_dirs('plot')
+    make_dirs('saved_model')
 
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     print(f"Using {device} device")

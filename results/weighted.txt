@@ -1,0 +1,13 @@
+Accuracy for class: 0 , attr: 0: 82.93446244477173 total: 5432 
+Accuracy for class: 0 , attr: 1: 98.89513860988349 total: 4978 
+Accuracy for class: 1 , attr: 0: 96.08026131591227 total: 6429 
+Accuracy for class: 1 , attr: 1: 63.19789535223619 total: 3421 
+
+precision    recall  f1-score   support
+
+           0       0.86      0.91      0.88     10410
+           1       0.89      0.85      0.87      9850
+
+    accuracy                           0.88     20260
+   macro avg       0.88      0.88      0.88     20260
+weighted avg       0.88      0.88      0.88     20260

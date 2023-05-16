@@ -4,6 +4,12 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+def make_dirs(path):
+    try :
+        os.makedirs(path)
+    except Exception as e:
+        pass
+
 def plot_image(orig, fake_img, epoch, num_imgs = 10, plot_dir = 'plot/'):
     _, ax = plt.subplots(2, num_imgs, figsize=(24,4))
     with torch.no_grad():
@@ -21,11 +27,8 @@ def plot_image(orig, fake_img, epoch, num_imgs = 10, plot_dir = 'plot/'):
     plt.savefig(f"{plot_dir}{epoch}.jpg")
 
 def save_model(bgm, disc, epoch, model_dir = 'saved_model/'):
-    try:
-        os.makedirs(f"saved_model/{model_dir}")
-    except Exception as e:
-        pass
-
+    make_dirs(f"saved_model/{model_dir}")
+    
     bgm_path = f'saved_model/{model_dir}bgm'
     torch.save({'epoch': epoch, 'model_state_dict': bgm.state_dict()}, bgm_path)
 
